@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title></title>
+
+    <link href="lib/ionic/css/ionic.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
+    <link href="css/ionic.app.css" rel="stylesheet">
+
+    -->
+
+    <!-- ionic/angularjs js -->
+    <script src="lib/ionic/js/ionic.bundle.js"></script>
+    <!-- ng-cordova for plugins -->
+    <script src="lib/ng-cordova/ng-cordova.min.js"></script>
+    <!-- cordova script (this will be a 404 during development) -->
+    <script src="cordova.js"></script>
+
+    <!-- your app's js -->
+    <script src="js/app.js"></script>
+  </head>
+  <body ng-app="starter">
+    <ion-nav-bar class="bar bar-header bar-stable">
+
+        <ion-nav-back-button>
+        </ion-nav-back-button>
+    </ion-nav-bar>
+    <ion-nav-view style="overflow-y:auto;overflow-x:hidden;" animation="slide-left-right"></ion-nav-view>
+    <!-- Script per la funzione di login dell'utente-->
+    <script id="login.html" type="text/ng-template">
+      <!-- The title of the ion-view will be shown on the navbar -->
+      <ion-view title="Login">
+        <ion-content class="padding" ng-controller="login" style="overflow:auto;">
+          <!-- The content of the page -->
+          <h3 style="margin-top:5%;text-align:center;">Benvenuto in University Network!</h3>
+          <div class="list" style="margin-top:10%;">
+            <label class="item item-input">
+              <input type="email" ng-model="email" placeholder="Email">
+            </label>
+            <label class="item item-input">
+              <input type="password" ng-model="password" placeholder="Password">
+            </label>
+          </div>
+          <div class="row" id="buttons">
+              <div class="col col-25 col-offset-25">
+                <a ng-disabled="disabled" ng-click="sendLoginData()" class="button button-balanced">
+                  Login
+                </a>
+              </div>
+              <div class="col col-25">
+                <a class="button" ng-disabled="disabled" ui-sref="registrazione">Registrati</a>
+              </div>
+          </div>
+          <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+              <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+          </div>
+        </ion-content>
+      </ion-view>
+    </script>
+    <!-- Script per la funzione di registrazione dell'utente-->
+    <script id="registrazione.html" type="text/ng-template">
+      <!-- The title of the ion-view will be shown on the navbar -->
+      <ion-view title="Registrazione">
+        <ion-content class="padding" style="overflow:auto;" >
+          <!-- The content of the page -->
+          <h3 style="margin-top:5%;text-align:center;">Inizia a condividere i tuoi appunti!</h3>
+            <div class="list">
+              <label class="item item-input item-icon-right">
+                <span class="input-label">Nome</span>
+                <input type="text" ng-model="nome" placeholder="Nome">
+              </label>
+              <label class="item item-input">
+                <span class="input-label">Cognome</span>
+                <input type="text" ng-model="cognome" placeholder="Cognome">
+              </label>
+              <label class="item item-input item-icon-right">
+                <span class="input-label">Password</span>
+                <i class="icon ion-eye" on-touch="showPassword = !showPassword"></i>
+                <input type="password" id="password" placeholder="Password" ng-model="password" ng-hide="showPassword">
+                <input type="text" id="passwordRaw" placeholder="Password" ng-model="password" ng-show="showPassword">
+              </label>
+              <label class="item item-input item-icon-right">
+                <span class="input-label">Email</span>
+                <input type="email" ng-model="email" placeholder="test@test.it">
+              </label>
+              <div>
+                <img id="myimage" src="img/default.png" width=150 height=150 on-touch="openModal()" style="vertical-align:middle;" />
+                <span class="button button-primary" style="vertical-align:middle;" on-touch="loadPhoto()">Carica foto profilo</span>
+              </div>
+              <label class="item item-input item-select">
+                <select class="my_select" ng-model="user">
+                  <option value="-1">Seleziona tipo utente</option>
+                  <option value="0">Studente</option>
+                  <option value="1">Docente</option>
+                </select>
+              </label>
+              <div ng-show="user==0" ng-hide="user!=0">
+                <label class="item item-input item-icon-right">
+                  <span class="input-label">Immatricolazione</span>
+                  <input type="number" ng-model="immatricolazione" placeholder="Anno immatricolazione">
+                </label>
+                <label class="item item-input item-icon-right">
+                  <span class="input-label">Luogo di nascita</span>
+                  <input type="text" ng-model="luogo_nascita" placeholder="Luogo di nascita">
+                </label>
+                <label class="item item-input item-icon-right">
+                  <span class="input-label">Data di nascita</span>
+                  <input type="text" disabled="true" id="data_nascita" on-touch="selectDate()" placeholder="Data di nascita">
+                </label>
+                <label class="item item-input item-select">
+                  <select class="my_select" ng-model="corso">
+                    <option value="-1">Seleziona corso di laurea</option>
+                    <option value="informatica per il management">Informatica per il management</option>
+                    <option value="informatica">Informatica</option>
+                  </select>
+                </label>
+              </div>
+              <div ng-show="user==1" ng-hide="user!=1">
+                <label class="item item-input item-select">
+                  <select class="my_select" ng-model="teacher_type">
+                    <option value="-1">Seleziona qualifica</option>
+                    <option value="Professore ordinario">Professore ordinario</option>
+                    <option value="Professore associato">Professore associato</option>
+                    <option value="Ricercatore">Ricercatore</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:2rem;">
+              <button class="button button-balanced" ng-click="sendRegistrationData()">Registrati</div>
+            </div>
+            <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+                <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+            </div>
+        </ion-content>
+      </ion-view>
+    </script>
+    <!-- Script per la visualizzazione del menu principale-->
+    <script id="homepage.html" type="text/ng-template">
+    <ion-side-menus>
+        <ion-side-menu-content>
+          <ion-nav-bar class="bar-stable nav-title-slide-ios7">
+           <ion-nav-back-button class="button-icon ion-arrow-left-c"> </ion-nav-back-button>
+          </ion-nav-bar>
+          <ion-nav-view name="menuContent" animation="slide-left-right"></ion-nav-view>
+        </ion-side-menu-content>
+        <ion-side-menu side="left">
+          <header class="bar bar-header bar-stable">
+            <h1 class="title">Menu</h1>
+          </header>
+          <ion-content class="has-header">
+            <ion-list>
+            <ion-item ui-sref="{{option.url}}" ng-repeat="option in menuOptions" menu-toggle>
+            {{option.title}}
+            </ion-item>
+            </ion-list>
+          </ion-content>
+        </ion-side-menu>
+      </ion-side-menus>
+    </script>
+    <!-- Script per la visualizzazione del profilo dell'utente-->
+    <script id="profilo.html" type="text/ng-template">
+      <!-- The title of the ion-view will be shown on the navbar -->
+      <ion-view title="Profilo">
+          <!-- The content of the page-->
+            <ion-nav-buttons side="left">
+              <button menu-toggle="left" ng-click="toggleLeft()" class="button button-icon icon ion-navicon"></button>
+            </ion-nav-buttons>
+            <ion-nav-buttons side="right">
+              <button class="button button-clear button-positive right" ng-click="openPopover($event)">Impostazioni</button>
+            </ion-nav-buttons>
+          <ion-content class="padding has-header">
+                <div class="list">
+                  <div id="profileImage">
+                    <img id="img" src="{{user.image}}" width=200 height=200 />
+                  </div>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Nome</span>
+                    <input ng-disabled="true" type="text" ng-model="user.nome">
+                  </label>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Cognome</span>
+                    <input ng-disabled="true" type="text" ng-model="user.cognome">
+                  </label>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Email</span>
+                    <input ng-disabled="true" type="text" ng-model="user.email">
+                  </label>
+                  <div ng-show="user.type==0">
+                    <label class="item item-input item-stacked-label">
+                      <span class="input-label">Data di nascita</span>
+                      <input ng-disabled="true" type="text" ng-model="user.dataDiNascita">
+                    </label>
+                    <label class="item item-input item-stacked-label">
+                      <span class="input-label">Luogo di nascita</span>
+                      <input ng-disabled="true" type="text" ng-model="user.luogoDiNascita">
+                    </label>
+                    <label class="item item-input item-stacked-label">
+                      <span class="input-label">Corso di laurea</span>
+                      <input ng-disabled="true" type="text" ng-model="user.corso">
+                    </label>
+                    <label class="item item-input item-stacked-label">
+                      <span class="input-label">Anno di immatricolazione</span>
+                      <input ng-disabled="true" type="text" ng-model="user.annoImmatricolazione">
+                    </label>
+                  </div>
+                  <div ng-show="user.type==1">
+                    <label class="item item-input item-stacked-label">
+                      <span class="input-label">Ruolo</span>
+                      <input ng-disabled="true" type="text" ng-model="user.ruolo">
+                    </label>
+                  </div>
+                  </div>
+                <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+                    <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+                </div>
+          </ion-content>
+      </ion-view>
+    </script>
+    <!-- Script per le funzioni del profilo dell'utente-->
+    <script id="profileSettings.html" type="text/ng-template">
+    <ion-popover-view>
+      <ion-content>
+        <ion-list>
+          <ion-item ng-click="changePassword()">
+            Cambia password
+          </ion-item>
+          <ion-item ng-click="removeAccount()">
+            Rimuovi account
+          </ion-item>
+          <ion-item ng-click="logout()">
+            Logout
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ion-popover-view>
+    </script>
+    <!-- Script per la visualizzazione dei messaggi-->
+    <script id="messages.html" type="text/ng-template">
+        <ion-view title="Messaggi">
+          <ion-nav-buttons side="left">
+            <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+          </ion-nav-buttons>
+          <ion-content class="padding has-header" style="overflow:auto;">
+            <div class="messages-buttons">
+              <button class="button button-light" ng-click="showSent()">Inviati ({{messages.number_sent}})</button>
+              <button class="button button-light" ng-click="showReceived()">Ricevuti ({{messages.number_received}})</button>
+            </div>
+            <ion-list ng-show="sent">
+              <a class="item item-avatar" href="#" ng-repeat="message in messages.sent">
+                <p class="firstLetter">
+                {{message.destinatario[0].trim().toUpperCase()}}
+                </p>
+                <h2 style="display:inline;">A: {{message.destinatario}}</h2>
+                <p style="display:inline;" class="right">{{message.data}}</p>
+                <h3 class="objectMsg">Oggetto: {{message.oggetto}}</h3>
+                <p class="truncateMsg">{{message.testo}}</p>
+              </a>
+            </ion-list>
+            <ion-list ng-show="received">
+            <a class="item item-avatar" href="#" ng-repeat="message in messages.received">
+              <p class="firstLetter">
+              {{message.mittente[0].trim().toUpperCase()}}
+              </p>
+              <h2 style="display:inline;">Da: {{message.mittente}}</h2>
+              <p style="display:inline;" class="right">{{message.data}}</p>
+              <h3 class="objectMsg">Oggetto: {{message.oggetto}}</h3>
+              <p class="truncateMsg">{{message.testo}}</p>
+            </a>
+            </ion-list>
+            <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+                <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+            </div>
+          </ion-content>
+        </ion-view>
+    </script>
+    <!-- Script per la visualizzazione della lista di chi viene seguito dall'utente-->
+    <script id="chiSeguo.html" type="text/ng-template">
+      <ion-view title="Chi seguo" ng-controller="ChiSeguo">
+        <ion-nav-buttons side="left">
+          <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+        </ion-nav-buttons>
+        <ion-content class="padding has-header" style="overflow:auto;">
+          <p style="color:red;text-align:center;font-size:1.2rem;" ng-show="users.number=='0'">Attualmente non ti segue nessuno</p>
+          <button class="button button-light" ng-click="openMessageBroadcast()" ng-hide="users.number=='0'">Invia messaggio broadcast</button>
+          <ion-list>
+            <a on-hold="userOptions($event,user)" ng-click="viewProfile(user)" class="item item-avatar" href="#" ng-repeat="user in users.users">
+              <p class="firstLetter">
+              {{user.nome[0].trim().toUpperCase()}}
+              </p>
+              <h2>{{user.nome+user.cognome}}</h2>
+              <h3>{{user.email}}</h3>
+            </a>
+          </ion-list>
+          <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+              <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+          </div>
+        </ion-content>
+      </ion-view>
+    </script>
+    <!-- Script per la visualizzazione di chi segue l'utente-->
+    <script id="chiMiSegue.html" type="text/ng-template">
+      <ion-view title="Chi mi segue" ng-controller="ChiMiSegue">
+        <ion-nav-buttons side="left">
+          <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+        </ion-nav-buttons>
+        <ion-content class="padding has-header" style="overflow:auto;">
+          <p style="color:red;text-align:center;font-size:1.2rem;" ng-show="users.number=='0'">Attualmente non ti segue nessuno</p>
+          <ion-list>
+            <a on-hold="userOptions($event,user)" ng-click="viewProfile(user)" class="item item-avatar" href="#" ng-repeat="user in users.users">
+              <p class="firstLetter">
+              {{user.nome[0].trim().toUpperCase()}}
+              </p>
+              <h2>{{user.nome+user.cognome}}</h2>
+              <h3>{{user.email}}</h3>
+            </a>
+          </ion-list>
+          <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+              <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+          </div>
+        </ion-content>
+      </ion-view>
+    </script>
+    <!-- Script per le funzioni inerenti l'interazione con un utente nella lista chiSeguo, ChiMiSegue, ricercaUtente-->
+    <script id="userOptions.html" type="text/ng-template">
+    <ion-popover-view>
+      <ion-content>
+        <ion-list>
+          <ion-item ng-show="follow" on-touch="manageFollow()">
+            Segui
+          </ion-item>
+          <ion-item ng-show="unfollow" on-touch="manageUnFollow()">
+            Non seguire più
+          </ion-item>
+          <ion-item ng-show="sendMessage" ng-click="openMessageModal()">
+            Invia messaggio
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ion-popover-view>
+    </script>
+    <script id="ricercaUtente.html" type="text/ng-template">
+    <ion-view title="Ricerca utente" >
+      <ion-nav-buttons side="left">
+        <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+      </ion-nav-buttons>
+      <ion-content class="padding has-header" style="overflow:auto;">
+      <div class="row">
+        <div class="col col-75 col-center">
+          <div class="list">
+            <label class="item item-input">
+              <i class="icon ion-search placeholder-icon"></i>
+              <input type="text" id="inputSearch" placeholder="Search">
+            </label>
+          </div>
+        </div>
+        <div class="col col-25 col-center">
+          <button class="button button-light" ng-click="find()">Cerca</button>
+        </div>
+      </div>
+      <div class="row">
+      <div class="col col-100">
+          <ion-list>
+            <h6 class="title" ng-show="showTitle">Risultati trovati: {{users.number}}</h6>
+            <a on-hold="userOptions($event,user)" ng-click="viewProfile(user)" class="item item-avatar" href="#" ng-repeat="user in users.users">
+              <p class="firstLetter">
+              {{user.nome[0].trim().toUpperCase()}}
+              </p>
+              <h2>{{user.nome+user.cognome}}</h2>
+              <h3>{{user.email}}</h3>
+              <h4>{{user.corso}}</h4>
+            </a>
+          </ion-list>
+          </div>
+        </div>
+        <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+            <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+        </div>
+      </ion-content>
+    </ion-view>
+    </script>
+    <script id="ultimeNews.html" type="text/ng-template">
+    <ion-view title="Ultime news">
+      <ion-nav-buttons side="left">
+        <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+      </ion-nav-buttons>
+      <ion-content class="padding has-header" style="overflow:auto;">
+      <div class="row" ng-show="teacher">
+        <div class="col col-100 col-center">
+          <button class="button button-light" ng-click="openModalNew()">Nuova</button>
+        </div>
+      </div>
+        <p style="color:red;text-align:center;font-size:1.2rem;" ng-show="news.number=='0'">Nessuna news presente</p>
+          <ion-list>
+            <a on-hold="newsOptions($event,news)" class="item item-avatar" href="#"  ng-repeat="news in news.news">
+              <p class="firstLetter">
+              {{news.creatore[0].trim().toUpperCase()}}
+              </p>
+              <h2 class="truncateMsg">{{news.creatore}}</h2>
+              <p>{{news.data.substring(0,16)}}</p>
+              <h3 class="objectMsg">Oggetto: {{news.oggetto}}</h3>
+              <p class="truncateMsg">{{news.testo}}</p>
+            </a>
+          </ion-list>
+        <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+            <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+        </div>
+      </ion-content>
+    </ion-view>
+    </script>
+    <script id="newsOptions.html" type="text/ng-template">
+    <ion-popover-view>
+      <ion-content>
+        <ion-list>
+          <ion-item ng-click="removeNews()">
+            Rimuovi
+          </ion-item>
+          <ion-item ng-click="openModalEdit()">
+            Modifica
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ion-popover-view>
+    </script>
+    <script id="corsi.html" type="text/ng-template">
+    <ion-view title="Corsi">
+      <ion-nav-buttons side="left">
+        <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+      </ion-nav-buttons>
+      <ion-content class="padding has-header" style="overflow:auto;">
+          <ion-list>
+            <a on-hold="corsiOptions($event,corso.id)" class="item item-avatar" href="#"  ng-repeat="corso in corsi.corso">
+              <p class="firstLetter">
+              {{corso.nome[0].trim().toUpperCase()}}
+              </p>
+              <h2>{{corso.nome}}</h2>
+              <h2 class="truncateMsg">Di: {{corso.creatore}}</h2>
+              <h3 class="truncateMsg">Corso di laurea: {{corso.corso_laurea}}</h3>
+              <p>N° crediti: {{corso.crediti}}</p>
+              <p>Anno: {{corso.anno}}</p>
+            </a>
+          </ion-list>
+        <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+            <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+        </div>
+      </ion-content>
+    </ion-view>
+    </script>
+    <script id="corsiOptions.html" type="text/ng-template">
+    <ion-popover-view>
+      <ion-content>
+        <ion-list>
+          <ion-item ng-click="viewAppunti()">
+            Visualizza appunti
+          </ion-item>
+          <ion-item ng-hide="teacher" ng-click="insertAppunto()">
+            Carica appunto
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ion-popover-view>
+    </script>
+    <script id="dettagliProfilo.html" type="text/ng-template">
+      <!-- The title of the ion-view will be shown on the navbar -->
+      <ion-view title="Dettagli profilo">
+          <!-- The content of the page-->
+            <ion-nav-buttons side="left">
+              <button menu-toggle="left" ng-click="toggleLeft()" class="button button-icon icon ion-navicon"></button>
+            </ion-nav-buttons>
+            <ion-nav-buttons side="right">
+              <button class="button button-clear button-positive right" ng-click="openPopover($event)">Impostazioni</button>
+            </ion-nav-buttons>
+          <ion-content class="padding has-header">
+                <div class="list">
+                  <div id="profileImage">
+                    <img id="imgProfile" width=200 height=200 />
+                  </div>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Nome</span>
+                    <input ng-disabled="true" type="text" ng-model="user.nome">
+                  </label>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Cognome</span>
+                    <input ng-disabled="true" type="text" ng-model="user.cognome">
+                  </label>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Email</span>
+                    <input ng-disabled="true" type="email" ng-model="user.email">
+                  </label>
+                  <div ng-show="user.user==0">
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Data di nascita</span>
+                    <input ng-disabled="true" type="text" ng-model="user.data_nascita">
+                  </label>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Luogo di nascita</span>
+                    <input ng-disabled="true" type="text" ng-model="user.luogo_nascita">
+                  </label>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Corso di laurea</span>
+                    <input ng-disabled="true" type="text" ng-model="user.corso">
+                  </label>
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Anno di immatricolazione</span>
+                    <input ng-disabled="true" type="text" ng-model="user.immatricolazione">
+                  </label>
+                  </div>
+                  <div ng-show="user.user==1">
+                  <label class="item item-input item-stacked-label">
+                    <span class="input-label">Ruolo</span>
+                    <input ng-disabled="true" type="text" ng-model="user.ruolo">
+                  </label>
+                  <button class="button button-light" ng-click="call()"><i class="ion-ios-telephone-outline" style="margin-right:1rem;"></i>Chiama (0519189392)</button>
+                  <button class="button button-light" ng-click="goToStudio()"><i class="ion-map" style="margin-right:1rem;"></i>Studio (Mura Anteo Zamboni, Bologna)</button>
+                  </div>
+                </div>
+                <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+                    <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+                </div>
+          </ion-content>
+      </ion-view>
+    </script>
+    <script id="userDetailsOptions.html" type="text/ng-template">
+    <ion-popover-view>
+      <ion-content>
+        <ion-list>
+          <ion-item ng-show="follow" on-touch="manageFollow()">
+            Segui
+          </ion-item>
+          <ion-item ng-show="unfollow" on-touch="manageUnFollow()">
+            Non seguire più
+          </ion-item>
+          <ion-item ng-show="sendMessage"  ng-click="openMessageModal()">
+            Invia messaggio
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ion-popover-view>
+    </script>
+    <script id="listaAppunti.html" type="text/ng-template">
+    <ion-view title="Lista appunti">
+      <ion-nav-buttons side="left">
+        <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+      </ion-nav-buttons>
+      <ion-content class="padding has-header" style="overflow:auto;">
+          <ion-list>
+            <a ng-click="viewDetails(appunto.id)" class="item item-avatar" href="#"  ng-repeat="appunto in lista.appunto">
+              <p class="firstLetter">
+              {{appunto.creatore[0].trim().toUpperCase()}}
+              </p>
+              <h2>{{appunto.titolo}}</h2>
+              <h2 class="truncateMsg">Di: {{appunto.creatore}}</h2>
+            </a>
+          </ion-list>
+        <div style="position: absolute;top: 40%;left: 40%;z-index:100;display:none;" id="spinner">
+            <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+        </div>
+      </ion-content>
+    </ion-view>
+    </script>
+    <script id="dettagliAppunto.html" type="text/ng-template">
+    <ion-view title="Dettagli appunto">
+      <ion-nav-buttons side="left">
+        <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+      </ion-nav-buttons>
+      <ion-content class="padding has-header" style="overflow:auto;">
+      <div class="list">
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Titolo</span>
+          <input ng-disabled="true" type="text" ng-model="appunto.titolo">
+        </label>
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Descrizione</span>
+          <input ng-disabled="true" type="text" ng-model="appunto.descrizione">
+        </label>
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Creato da</span>
+          <input ng-disabled="true" type="text" ng-model="appunto.creatore">
+        </label>
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Data caricamento</span>
+          <input ng-disabled="true" type="text" ng-model="appunto.data">
+        </label>
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Corso di laurea</span>
+          <input ng-disabled="true" type="text" ng-model="appunto.corso_laurea">
+        </label>
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Corso</span>
+          <input ng-disabled="true" type="text" ng-model="appunto.corso">
+        </label>
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Valutazione media</span>
+          <input ng-disabled="true" type="text" ng-model="appunto.valutazione">
+        </label>
+      </div>
+      <h2>Commenti presenti: {{appunto.numero_commenti}}</h2>
+          <ion-list style="max-height:100px;overflow-y:auto;">
+            <a class="item item-avatar" href="#" ng-repeat="commento in appunto.commento">
+              <p class="firstLetter">
+              {{commento.creatore[0].trim().toUpperCase()}}
+              </p>
+              <h2 class="truncateMsg">Di: {{commento.creatore}}</h2>
+              <h2>Il: {{commento.data}}</h2>
+              <h2>Valutazione: {{commento.valutazione}}</h2>
+              <p>{{commento.descrizione}}</p>
+            </a>
+          </ion-list>
+          <div style="text-align:center;" ng-show="appunto.follower">
+            <button class="button button-balanced" ng-click="comment()">Lascia un commento</button>
+          </div>
+        <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading" id="spinner">
+            <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+        </div>
+      </ion-content>
+    </ion-view>
+    </script>
+    <script id="caricaAppunto.html" type="text/ng-template">
+    <ion-view title="Carica appunto">
+      <ion-nav-buttons side="left">
+        <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
+      </ion-nav-buttons>
+      <ion-content class="padding has-header" style="overflow:auto;">
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Titolo</span>
+          <input type="text" placeholder="Inserisci titolo" ng-model="titolo">
+        </label>
+        <label class="item item-input item-stacked-label">
+          <span class="input-label">Descrizione</span>
+          <input type="text" placeholder="Inserisci descrizione" ng-model="descrizione">
+        </label>
+        <div class="row">
+          <div class="col col-33">
+            <button class="button button-light" ng-click="uploadFile()">Carica file</button>
+          </div>
+          <div class="col col-77" style="padding-top:0.8rem;">
+            <label>File caricato: {{file.name}}</label>
+            <input type="file" id="file" ng-hide="true">
+          </div>
+        </div>
+        <div style="text-align:center;">
+          <button style="margin-top:2rem;" class="button button-balanced" ng-click="uploadAppunto()">Carica appunto</button>
+        </div>
+        <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+            <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+        </div>
+      </ion-content>
+    </ion-view>
+    </script>
+    <script id="commenta.html" type="text/ng-template">
+      <ion-modal-view>
+        <ion-header-bar>
+          <h1 class="title">Commenta</h1>
+          <a class="button button-light right" style="display:inline;"><i class="ion-close-round"></i></a>
+        </ion-header-bar>
+        <ion-content>
+          <label class="item item-input item-stacked-label">
+            <span class="input-label">Valutazione</span>
+            <input type="number" placeholder="Inserisci valutazione" ng-model="valutazione_commento">
+          </label>
+          <label class="item item-input item-stacked-label">
+            <span class="input-label">Descrizione</span>
+            <input type="text" placeholder="Inserisci descrizione" ng-model="descrizione_commento">
+          </label>
+          <div style="text-align:center;margin-top:1rem;">
+            <button class="button button-balanced" ng-click="uploadComment()">Commenta</button>
+          </div>
+        </ion-content>
+      </ion-modal-view>
+    </script>
+    <script id="sendMessage.html" type="text/ng-template">
+      <ion-modal-view>
+        <ion-header-bar>
+          <h1 class="title">Invia un messaggio</h1>
+          <a class="button button-light right" style="display:inline;" ng-click="closeModal()"><i class="ion-close-round"></i></a>
+        </ion-header-bar>
+        <ion-content>
+          <label class="item item-input">
+            <span class="input-label">A:</span>
+            <input type="text" ng-disabled="true" ng-model="destinatario">
+          </label>
+          <label class="item item-input item-stacked-label">
+            <span class="input-label">Oggetto</span>
+            <input type="text" placeholder="Inserisci oggetto" ng-model="oggetto">
+          </label>
+          <label class="item item-input item-stacked-label">
+            <span class="input-label">Testo {{testo.length}}/100</span>
+            <textarea type="text" placeholder="Inserisci testo" maxlength="100" style="resize:none;" rows="3" cols="40" ng-model="testo"></textarea>
+          </label>
+          <div style="text-align:center;margin-top:1rem;">
+            <button class="button button-balanced" ng-click="sendToUser()">Invia</button>
+          </div>
+          <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+              <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+          </div>
+        </ion-content>
+      </ion-modal-view>
+    </script>
+    <script id="viewPhoto.html" type="text/ng-template">
+      <ion-modal-view>
+        <ion-header-bar>
+          <h1 class="title">Foto profilo</h1>
+          <a class="button button-light right" style="display:inline;" ng-click="closeModal()"><i class="ion-close-round"></i></a>
+        </ion-header-bar>
+        <ion-content>
+          <img id="modalImg" style="width:100%;" />
+        </ion-content>
+      </ion-modal-view>
+    </script>
+    <script id="newNews.html" type="text/ng-template">
+      <ion-modal-view>
+        <ion-header-bar>
+          <h1 class="title">Carica una news</h1>
+          <a class="button button-light right" style="display:inline;" ng-click="closeModalNew()"><i class="ion-close-round"></i></a>
+        </ion-header-bar>
+        <ion-content>
+          <label class="item item-input item-stacked-label">
+            <span class="input-label">Oggetto</span>
+            <input type="text" placeholder="Inserisci oggetto" ng-model="oggetto">
+          </label>
+          <label class="item item-input item-stacked-label">
+            <span class="input-label">Testo {{testo.length}}/100</span>
+            <textarea type="text" placeholder="Inserisci testo" maxlength="100" style="resize:none;" rows="3" cols="40" ng-model="testo"></textarea>
+          </label>
+          <div style="text-align:center;margin-top:1rem;">
+            <button class="button button-balanced" ng-click="loadNewNews()">Invia</button>
+          </div>
+          <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+              <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+          </div>
+        </ion-content>
+      </ion-modal-view>
+    </script>
+    <script id="editNews.html" type="text/ng-template">
+      <ion-modal-view>
+        <ion-header-bar>
+          <h1 class="title">Modifica news</h1>
+          <a class="button button-light right" style="display:inline;" ng-click="closeModalEdit()"><i class="ion-close-round"></i></a>
+        </ion-header-bar>
+        <ion-content>
+          <label class="item item-input item-stacked-label">
+            <span class="input-label">Oggetto</span>
+            <input type="text" placeholder="Inserisci oggetto" ng-model="oggettoEdit">
+          </label>
+          <label class="item item-input item-stacked-label">
+            <span class="input-label">Testo {{testoEdit.length}}/100</span>
+            <textarea type="text" placeholder="Inserisci testo" maxlength="100" style="resize:none;" rows="3" cols="40" ng-model="testoEdit"></textarea>
+          </label>
+          <div style="text-align:center;margin-top:1rem;">
+            <button class="button button-balanced" ng-click="loadEditNews()">Invia</button>
+          </div>
+          <div style="position: absolute;top: 40%;left: 40%;z-index:100;" ng-show="loading">
+              <ion-spinner class="ripple" icon="ripple"></ion-spinner>
+          </div>
+        </ion-content>
+      </ion-modal-view>
+    </script>
+  </body>
+</html>
